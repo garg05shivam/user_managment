@@ -1,62 +1,72 @@
-import { users } from "../data/users.js";
-
 let success = true;
 
 export const checkAuth = (req, res, next) => {
-    if (success) {
-        console.log("Auth Checked");
-        next();
-    } else {
-        console.log("Auth failed");
-        return res.status(401).json({
-            success: false,
-            message: "Unauthorized access"
-        });
-    }
+  const body = req.body;
+  console.log("body");
+  const {authorization} = req.body;
+  if(success){
+    console.log("AUTH CHECKED");
+    next();
+  }
+  else{
+    console.log("AUTH FAILED");
+     return res.status(400).json({
+      message:"AUTH FAILED"
+     })
+  }
 };
 
-// Validate user ID
+
+// export const validateZod = (schema)=>(req,res,next)=>{
+//       let result = schema.safeParse(req.body);
+//       console.log("Body parsing in using zod")
+//       if(result.success){
+//         next();
+//       }
+//       else{
+//           return res.status(400).json({
+//          message:"Create User Zod Validation failed"
+//      })
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
 export const validateUserId = (req, res, next) => {
-    const { id } = req.params;
+  console.log("Validating users");
+  const { id } = req.params;
 
-    if (!id) {
-        return res.status(400).json({
-            success: false,
-            message: "User ID is required"
-        });
-    }
+  if (!id || id.length < 5) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid user ID"
+    });
+  }
 
-    const user = users.find(u => u.id === id);
-
-    if (!user) {
-        return res.status(404).json({
-            success: false,
-            message: "User not found"
-        });
-    }
-
-    req.user = user;
-    next();
+  next();
 };
 
-// Validate name and email (OPTIONAL)
-export const validateNameEmail = (req, res, next) => {
-    const { name, email } = req.body;
 
-    if (!name || !email) {
-        return res.status(400).json({
-            success: false,
-            message: "Name and Email are required"
-        });
-    }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return res.status(400).json({
-            success: false,
-            message: "Invalid email format"
-        });
-    }
+export const validateZod = (schema) => (req, res, next) => {
+  const result = schema.safeParse(req.body);
+  console.log("result errors",result)
+  if (!result.success) {
+    return res.status(400).json({
+      success: false,
+      errors: result.error.message
+    });
+  }
 
-    next();
+  req.body = result.data; // sanitized data
+  next();
 };
